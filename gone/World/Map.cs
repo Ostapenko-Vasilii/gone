@@ -140,7 +140,7 @@ namespace gone.World
 
         private int DistanceTiles(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
 
-        private List<Point>? FindPathAStar(Point start, Point goal)
+        public List<Point>? FindPathAStar(Point start, Point goal)
         {
             var open = new List<Point> { start };
             var cameFrom = new Dictionary<Point, Point>();
@@ -151,7 +151,7 @@ namespace gone.World
             {
                 Point current = open[0];
                 var bestF = gScore.GetValueOrDefault(current, int.MaxValue) + Heuristic(current, goal);
-                for (int i = 1; i < open.Count; i++)
+                for (var i = 1; i < open.Count; i++)
                 {
                     var p = open[i];
                     var f = gScore.GetValueOrDefault(p, int.MaxValue) + Heuristic(p, goal);

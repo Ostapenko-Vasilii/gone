@@ -6,7 +6,7 @@ namespace gone.Objects
     public abstract class Entity
     {
         public bool IsActive { get; private set; } = true;
-        public Vector2 Position { get; private set; }
+        public Vector2 Position { get; protected set; }
         public float Rotation { get; private set; }
 
         public Point Size { get; set; }
