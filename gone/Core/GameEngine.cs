@@ -36,7 +36,8 @@ namespace gone.Core
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            _gameState.LoadContent(Content);
+            _gameState.LoadContent(Content, GraphicsDevice);
+            
         }
 
         protected override void Update(GameTime gameTime)

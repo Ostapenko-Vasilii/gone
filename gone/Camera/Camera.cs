@@ -57,7 +57,6 @@ public class Camera
     {
         var moveX = 0f;
         var moveY = 0f;
-
         if (keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.A))
             moveX -= CameraSpeed;
         if (keyboard.IsKeyDown(Keys.Right) || keyboard.IsKeyDown(Keys.D))

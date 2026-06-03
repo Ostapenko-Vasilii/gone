@@ -7,7 +7,7 @@ namespace gone.Interfaces
 {
     internal interface IObject
     {
-        internal void LoadContent(ContentManager contentManager);
+        internal void LoadContent(ContentManager contentManager, GraphicsDevice graphicsDevice);
         internal void Update(GameTime gameTime);
         internal void Draw(SpriteBatch spriteBatch);
     }

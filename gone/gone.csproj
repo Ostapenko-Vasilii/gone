@@ -28,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\levels\" />
+    <Folder Include="temp\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Content\levels\level1.json">

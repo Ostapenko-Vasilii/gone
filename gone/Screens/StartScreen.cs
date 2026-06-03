@@ -12,7 +12,7 @@ namespace gone.Screens
         {
         }
 
-        public void LoadContent(ContentManager contentManager)
+        public void LoadContent(ContentManager contentManager, GraphicsDevice graphicsDevice)
         {
         }
 

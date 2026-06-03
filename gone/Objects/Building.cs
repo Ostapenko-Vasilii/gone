@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using GameCamera = gone.Camera.Camera;
 
 namespace gone.Objects;
 
@@ -18,6 +19,26 @@ public class Building : Entity
 
     public override void Update(GameTime gameTime)
     {
-        throw new System.NotImplementedException();
+
+    }
+
+    public void Draw(SpriteBatch spriteBatch, GameCamera camera, Color tint)
+    {
+        if (Sprite != null)
+        {
+            var screenPos = camera.Apply(Position.X, Position.Y);
+            spriteBatch.Draw(
+                Sprite,
+                new Rectangle((int)screenPos.X, (int)screenPos.Y, Size.X, Size.Y),
+                tint
+            );
+        }
+    }
+    
+    public void TakeDamage(float damage)
+    {
+        Health -= damage;
+        if (Health < 0)
+            Health = 0;
     }
 }
