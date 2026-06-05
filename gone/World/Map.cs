@@ -256,6 +256,60 @@ namespace gone.World
 
             return null;
         }
+        
+    public List<Point>? FindPipePath(Point start, Point goal, List<Tower> towers, List<Pipe> pipes)
+    {
+        var open = new List<Point> { start };
+        var cameFrom = new Dictionary<Point, Point>();
+        var gScore = new Dictionary<Point, int> { [start] = 0 };
+        var closed = new HashSet<Point>();
+        
+        var towerTiles = new HashSet<Point>(towers.Select(t => new Point((int)t.Position.X / TileSize, (int)t.Position.Y / TileSize)));
+        var pipeTiles = new HashSet<Point>(pipes.Select(p => new Point((int)p.Position.X / TileSize, (int)p.Position.Y / TileSize)));
+
+        while (open.Count > 0)
+        {
+            Point current = open[0];
+            var bestF = gScore.GetValueOrDefault(current, int.MaxValue) + Heuristic(current, goal);
+            for (var i = 1; i < open.Count; i++)
+            {
+                var p = open[i];
+                var f = gScore.GetValueOrDefault(p, int.MaxValue) + Heuristic(p, goal);
+                if (f < bestF)
+                {
+                    bestF = f;
+                    current = p;
+                }
+            }
+
+            if (current.Equals(goal))
+                return ReconstructPath(cameFrom, current);
+
+            open.Remove(current);
+            closed.Add(current);
+
+            foreach (var nb in GetNeighbors(current))
+            {
+                if (closed.Contains(nb)) continue;
+                if (nb.X < 0 || nb.Y < 0 || nb.X >= MapWidth || nb.Y >= MapHeight) continue;
+                if (_currentMap[nb.X, nb.Y].Type == TileType.WATER) continue;
+                if (towerTiles.Contains(nb) || pipeTiles.Contains(nb)) continue;
+                
+                var baseTiles = new List<Point> { BaseTile, new Point(BaseTile.X + 1, BaseTile.Y), new Point(BaseTile.X, BaseTile.Y + 1), new Point(BaseTile.X + 1, BaseTile.Y + 1) };
+                if(baseTiles.Contains(nb)) continue;
+
+                var tentativeG = gScore.GetValueOrDefault(current, int.MaxValue) + 1;
+                if (!gScore.TryGetValue(nb, out var existingG) || tentativeG < existingG)
+                {
+                    cameFrom[nb] = current;
+                    gScore[nb] = tentativeG;
+                    if (!open.Contains(nb)) open.Add(nb);
+                }
+            }
+        }
+
+        return null;
+    }
 
         private int Heuristic(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
 

@@ -18,7 +18,6 @@ namespace gone.Core
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            Globals.currentScreen = ScreensEnum.Game;
         }
         protected override void Initialize()
         {

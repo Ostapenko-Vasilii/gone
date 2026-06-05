@@ -11,7 +11,7 @@ public class GameHud
     private SpriteFont _font;
 
     private const int PanelWidth = 300;
-    private const int PanelHeight = 160; 
+    private const int PanelHeight = 200;
     private const int Padding = 16;
     private const int BarHeight = 20;
     private const int BarWidth = 263;
@@ -33,13 +33,16 @@ public class GameHud
         }
     }
 
-    public void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, Building baseBuilding, int score, int towerCost)
+    public void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, Building baseBuilding, int score, int towerCost, float coolingProgress)
     {
         var panelX = _screenWidth - PanelWidth - Padding;
         var panelY = Padding;
 
         DrawPanel(spriteBatch, graphicsDevice, panelX, panelY);
         DrawHealthBar(spriteBatch, graphicsDevice, baseBuilding, panelX, panelY);
+        if (coolingProgress > 0)
+            DrawCoolingBar(spriteBatch, graphicsDevice, coolingProgress, panelX, panelY);
+            
         if (_font != null)
         {
             DrawHealthText(spriteBatch, baseBuilding, panelX, panelY);
@@ -85,6 +88,22 @@ public class GameHud
         fillTexture.SetData(new[] { color });
         spriteBatch.Draw(fillTexture, new Rectangle(barX, barY, filledWidth, BarHeight), Color.White);
     }
+    
+    private void DrawCoolingBar(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, float coolingProgress, int panelX, int panelY)
+    {
+        var barX = panelX + Padding;
+        var barY = panelY + 65;
+
+        var filledWidth = (int)(BarWidth * coolingProgress);
+
+        var backgroundTexture = new Texture2D(graphicsDevice, 1, 1);
+        backgroundTexture.SetData(new[] { Color.DarkBlue });
+        spriteBatch.Draw(backgroundTexture, new Rectangle(barX, barY, BarWidth, BarHeight / 2), Color.White);
+
+        var fillTexture = new Texture2D(graphicsDevice, 1, 1);
+        fillTexture.SetData(new[] { Color.Aqua });
+        spriteBatch.Draw(fillTexture, new Rectangle(barX, barY, filledWidth, BarHeight / 2), Color.White);
+    }
 
     private void DrawHealthText(SpriteBatch spriteBatch, Building baseBuilding, int panelX, int panelY)
     {
@@ -98,7 +117,7 @@ public class GameHud
     private void DrawScoreText(SpriteBatch spriteBatch, int score, int panelX, int panelY)
     {
         var textX = panelX + Padding;
-        var textY = panelY + 80;
+        var textY = panelY + 100;
 
         var scoreText = $"Score: {score}";
         spriteBatch.DrawString(_font, scoreText, new Vector2(textX, textY), Color.White);
@@ -107,7 +126,7 @@ public class GameHud
     private void DrawTowerCostText(SpriteBatch spriteBatch, int towerCost, int panelX, int panelY)
     {
         var textX = panelX + Padding;
-        var textY = panelY + 120;
+        var textY = panelY + 140;
 
         var costText = $"Tower Cost: {towerCost}";
         spriteBatch.DrawString(_font, costText, new Vector2(textX, textY), Color.White);
