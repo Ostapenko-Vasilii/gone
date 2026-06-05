@@ -22,7 +22,7 @@ public class Building : Entity
 
     }
 
-    public void Draw(SpriteBatch spriteBatch, GameCamera camera, Color tint)
+    public virtual void Draw(SpriteBatch spriteBatch, GameCamera camera, Color tint)
     {
         if (Sprite != null)
         {

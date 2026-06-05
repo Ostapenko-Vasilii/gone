@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using System;
 
 namespace gone.Objects
@@ -14,9 +14,14 @@ namespace gone.Objects
             Speed = 0f;
         }
 
+        public void TakeDamage(float damage)
+        {
+            Heath -= damage;
+            if (Heath < 0) Heath = 0;
+        }
+
         public override void Update(GameTime gameTime)
         {
         }
-
     }
 }

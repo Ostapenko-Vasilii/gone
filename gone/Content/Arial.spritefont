@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<XnaContent xmlns:ns="http://schemas.microsoft.com/xna/2003/07/content">
+  <Asset Type="Microsoft.Xna.Framework.Content.Pipeline.Graphics.FontDescription">
+    <FontName>Arial</FontName>
+    <Size>18</Size>
+    <Spacing>0</Spacing>
+    <UseKerning>true</UseKerning>
+    <Style>Regular</Style>
+    <CharacterRegions>
+      <CharacterRegion>
+        <Start>32</Start>
+        <End>126</End>
+      </CharacterRegion>
+    </CharacterRegions>
+  </Asset>
+</XnaContent>
+
+

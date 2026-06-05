@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using gone.Objects;
 
 namespace gone.World
 {
@@ -47,7 +48,7 @@ namespace gone.World
             {
                 for (var j = 0; j < mapHeight; j++)
                 {
-                    map[i,j] = new Tile(TileType.SAND, true);
+                    map[i,j] = new Tile(TileType.SAND, true, 1);
                 }
             }
             return map;
@@ -63,11 +64,12 @@ namespace gone.World
 
             for (var x = 0; x < MapWidth; x++)
                 for (var y = 0; y < MapHeight; y++)
-                    _currentMap[x, y] = new Tile(TileType.SAND, true);
+                    _currentMap[x, y] = new Tile(TileType.SAND, true, 1);
 
             BaseTile = new Point(MapWidth / 2, MapHeight / 2);
             _currentMap[BaseTile.X, BaseTile.Y].Type = TileType.BASE;
             _currentMap[BaseTile.X, BaseTile.Y].IsWalkable = true;
+            _currentMap[BaseTile.X, BaseTile.Y].DangerLevel = 5;
 
             var waterRegions = rnd.Next(1, 3);
             var attempts = 0;
@@ -138,7 +140,75 @@ namespace gone.World
 
         }
 
-        private int DistanceTiles(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+    public bool IsTileOccupiedByTower(Point pos, List<Tower> towers)
+    {
+        return towers.Any(t => new Point((int)t.Position.X / TileSize, (int)t.Position.Y / TileSize) == pos);
+    }
+
+    public bool IsTileOccupiedByRobot(Point pos, List<Enemy> enemies)
+    {
+        return enemies.Any(e => new Point((int)e.Position.X / TileSize, (int)e.Position.Y / TileSize) == pos);
+    }
+
+    public bool CheckTowerProximity(Point pos, List<Tower> towers)
+    {
+        return towers.Any(t => {
+            Point towerPos = new Point((int)t.Position.X / TileSize, (int)t.Position.Y / TileSize);
+            return Math.Abs(pos.X - towerPos.X) <= 1 && Math.Abs(pos.Y - towerPos.Y) <= 1;
+        });
+    }
+
+    public void ApplyTowerDanger(Point pos)
+    {
+        _currentMap[pos.X, pos.Y].IsWalkable = false;
+        for (int x = -3; x <= 3; x++)
+        {
+            for (int y = -3; y <= 3; y++)
+            {
+                int nx = pos.X + x;
+                int ny = pos.Y + y;
+
+                if (nx < 0 || ny < 0 || nx >= MapWidth || ny >= MapHeight) continue;
+
+                int dist = Math.Abs(x) + Math.Abs(y);
+                if (dist == 0)
+                    _currentMap[nx, ny].DangerLevel = 1000;
+                else if (dist == 1)
+                    _currentMap[nx, ny].DangerLevel += 50;
+                else if (dist == 2)
+                    _currentMap[nx, ny].DangerLevel += 25;
+                else if (dist == 3)
+                    _currentMap[nx, ny].DangerLevel += 10;
+            }
+        }
+    }
+    
+    public void RemoveTower(Point pos)
+    {
+        _currentMap[pos.X, pos.Y].IsWalkable = true;
+        for (int x = -3; x <= 3; x++)
+        {
+            for (int y = -3; y <= 3; y++)
+            {
+                int nx = pos.X + x;
+                int ny = pos.Y + y;
+
+                if (nx < 0 || ny < 0 || nx >= MapWidth || ny >= MapHeight) continue;
+
+                int dist = Math.Abs(x) + Math.Abs(y);
+                if (dist == 0)
+                    _currentMap[nx, ny].DangerLevel = 1;
+                else if (dist == 1)
+                    _currentMap[nx, ny].DangerLevel -= 50;
+                else if (dist == 2)
+                    _currentMap[nx, ny].DangerLevel -= 25;
+                else if (dist == 3)
+                    _currentMap[nx, ny].DangerLevel -= 10;
+            }
+        }
+    }
+
+    private int DistanceTiles(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
 
         public List<Point>? FindPathAStar(Point start, Point goal)
         {
@@ -173,7 +243,8 @@ namespace gone.World
                     if (closed.Contains(nb)) continue;
                     if (nb.X < 0 || nb.Y < 0 || nb.X >= MapWidth || nb.Y >= MapHeight) continue;
                     if (!_currentMap[nb.X, nb.Y].IsWalkable) continue; 
-                    var tentativeG = gScore.GetValueOrDefault(current, int.MaxValue) + 1;
+                    var moveCost = _currentMap[nb.X, nb.Y].DangerLevel;
+                    var tentativeG = gScore.GetValueOrDefault(current, int.MaxValue) + moveCost;
                     if (!gScore.TryGetValue(nb, out var existingG) || tentativeG < existingG)
                     {
                         cameFrom[nb] = current;
@@ -212,8 +283,10 @@ namespace gone.World
         {
             foreach (var p in path)
             {
+                if (_currentMap[p.X, p.Y].Type != TileType.SAND) continue;
                 _currentMap[p.X, p.Y].Type = TileType.ROAD;
                 _currentMap[p.X, p.Y].IsWalkable = true;
+                _currentMap[p.X, p.Y].DangerLevel = 0;
             }
 
             for (int i = 0; i < path.Count; i++)
@@ -238,8 +311,10 @@ namespace gone.World
         {
             if (x < 0 || y < 0 || x >= MapWidth || y >= MapHeight) return;
             if (_currentMap[x, y].Type == TileType.WATER) return;
+            if (_currentMap[x, y].Type != TileType.SAND) return;
             _currentMap[x, y].Type = TileType.ROAD;
             _currentMap[x, y].IsWalkable = true;
+            _currentMap[x, y].DangerLevel = 0;
         }
 
         public void LoadContent(ContentManager contentManager, GraphicsDevice graphicsDevice)
@@ -284,7 +359,17 @@ namespace gone.World
             var mapWidth = 40;
             var jsonData = File.ReadAllText(pathToLevels, System.Text.Encoding.ASCII);
             var data = JsonSerializer.Deserialize<MapData>(jsonData);
-            var allMap = data.TileData.Select(x => new Tile((TileType)x, x == 1)).ToArray();
+            var allMap = data.TileData.Select(x => 
+            {
+                var type = (TileType)x;
+                var isWalkable = x == 1;
+                var danger = x switch
+                {
+                    1 => 1,
+                    _ => 1
+                };
+                return new Tile(type, isWalkable, danger);
+            }).ToArray();
 
             var newMap = new Tile[mapWidth, mapHeight];
             for (var y = 0; y < mapHeight; y++)
