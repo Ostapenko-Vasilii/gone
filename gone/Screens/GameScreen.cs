@@ -441,7 +441,6 @@ namespace gone.Screens
             var tile = _map.CurrentMap[pos.X, pos.Y];
             if (tile.Type != TileType.WATER) return false;
 
-            // Check for adjacent land
             bool hasAdjacentLand = false;
             for (int x = -1; x <= 1; x++)
             {
